@@ -10443,7 +10443,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   }
 
   /* ── importação da planilha (.xlsx) ── */
-  var SIN={id:['id','codigo','cod'],doc:['nf / documento','nf','nota','nota fiscal','documento','numero nf','n nf','no nf','num nf','nf documento','numero'],fornecedor:['fornecedor','cod fornecedor','codigo fornecedor','fornecedor cod','emitente'],fornecedorNome:['nome fornecedor','nome do fornecedor','razao social','nome fantasia','descricao fornecedor','nome'],categoria:['categoria','categoria fornecedor','categoria da nota','classificacao','tipo de despesa'],cnpj:['cnpj','cnpj fornecedor','cnpj/cpf','cpf/cnpj'],filial:['filial','unidade','loja','empresa'],responsavel:['responsavel','responsavel pela correcao','responsavel correcao','responsaveis','resp','usuario','usuario responsavel','analista','analista responsavel','corretor','corretor responsavel','colaborador','atribuido a','atribuido para','encaminhado para','quem corrige','quem vai corrigir','quem corrigiu','executor','encarregado'],alteradoPor:['alterado por','modificado por','atualizado por','ultima alteracao por','editado por','lancado por','incluido por','criado por','solicitante','solicitado por'],motivo:['motivo da correcao','motivo','problema','ocorrencia','descricao','erro'],
+  var SIN={id:['id','codigo','cod'],doc:['nf / documento','nf','nota','nota fiscal','documento','numero nf','n nf','no nf','num nf','nf documento','numero'],fornecedor:['fornecedor','cod fornecedor','codigo fornecedor','fornecedor cod','emitente'],fornecedorNome:['nome fornecedor','nome do fornecedor','razao social','nome fantasia','descricao fornecedor','nome'],categoria:['categoria','categoria fornecedor','categoria da nota','classificacao','tipo de despesa','tipo','tipo de erro','tipo erro','tipo de correcao','tipo correcao','assunto','area'],cnpj:['cnpj','cnpj fornecedor','cnpj/cpf','cpf/cnpj'],filial:['filial','unidade','loja','empresa'],responsavel:['responsavel','responsavel pela correcao','responsavel correcao','responsaveis','resp','usuario','usuario responsavel','analista','analista responsavel','corretor','corretor responsavel','colaborador','atribuido a','atribuido para','encaminhado para','quem corrige','quem vai corrigir','quem corrigiu','executor','encarregado'],alteradoPor:['alterado por','modificado por','atualizado por','ultima alteracao por','editado por','lancado por','incluido por','criado por','solicitante','solicitado por'],motivo:['motivo da correcao','motivo','problema','ocorrencia','descricao','erro'],
     anexData:['data anexacao','data de anexacao','data','data envio','data encaminhamento','anexado em','data entrada','data solicitacao'],anexHora:['hora anexacao','hora de anexacao','hora','hora envio'],iniData:['data inicio','data de inicio','inicio'],iniHora:['hora inicio','hora de inicio'],fimData:['data finalizacao','data de finalizacao','data fim','data conclusao','finalizado em','data correcao'],fimHora:['hora finalizacao','hora de finalizacao','hora fim','hora conclusao'],
     mesRef:['mes','mes referencia','mes de referencia','mes ref','mes/ano','mes ano','competencia','periodo','mes do lancamento','mes lancamento'],
     status:['status','situacao'],prazo:['prazo','prazo (h)','prazo horas'],obs:['observacao','observacoes','obs']};
@@ -10454,7 +10454,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
     Object.keys(PARCIAL).forEach(function(k){if(m[k]!=null)return;var idx=header.findIndex(function(h,j){var n=norm(h).replace(/[º°.:]/g,' ');return !usados[j]&&n&&!(k==='anexData'&&/inicio|final|fim|conclus|correc|emiss|venc|alterad|modificad|atualizad/.test(n))&&PARCIAL[k].some(function(t){return (n+' ').indexOf(t)>=0})});if(idx>=0){m[k]=idx;usados[idx]=1}});
     return m;
   }
-  var PARCIAL={fornecedorNome:['razao social','nome fornec','nome do fornec'],categoria:['categor'],mesRef:['mes ','competenc'],anexData:['lancamento','lancad','lancto','anexa','anexo','envio','enviad','entrada','recebid','recebiment','solicitac','abertura','registro','cadastro','inclusao','dt ','data'],responsavel:['respons','corretor','analista','colaborador','atribuid'],alteradoPor:['alterado por','modificado por','atualizado por','editado por','lancado por','incluido por','criado por'],motivo:['motivo','correcao necessaria','o que corrigir','divergencia'],obs:['observ']};
+  var PARCIAL={fornecedorNome:['razao social','nome fornec','nome do fornec'],categoria:['categor','tipo ','assunto'],mesRef:['mes ','competenc'],anexData:['lancamento','lancad','lancto','anexa','anexo','envio','enviad','entrada','recebid','recebiment','solicitac','abertura','registro','cadastro','inclusao','dt ','data'],responsavel:['respons','corretor','analista','colaborador','atribuid'],alteradoPor:['alterado por','modificado por','atualizado por','editado por','lancado por','incluido por','criado por'],motivo:['motivo','correcao necessaria','o que corrigir','divergencia'],obs:['observ']};
   function excelData(v){
     if(v==null||v==='')return {d:'',t:''};
     if(v instanceof Date&&!isNaN(v)){var ano=v.getFullYear();if(ano<1901)return {d:'',t:pad(v.getHours())+':'+pad(v.getMinutes())};return {d:ano+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate()),t:(v.getHours()||v.getMinutes())?pad(v.getHours())+':'+pad(v.getMinutes()):''}}
@@ -10524,6 +10524,13 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
       }
       if(best){melhor.map.responsavel=best.c;melhor.respAuto=true}
     }
+    /* coluna do fornecedor só com códigos (27014193): o nome é a coluna vizinha com texto (C B DOS S VIEIRA LTDA) */
+    if(melhor.map.fornecedorNome==null&&ov.fornecedorNome!=='-'&&melhor.map.fornecedor!=null){
+      var usadosF={};Object.keys(melhor.map).forEach(function(k){usadosF[melhor.map[k]]=1});
+      var amostra=melhor.dados.slice(0,300),fc=melhor.map.fornecedor;
+      var taxa=function(c,re){var tot=0,ok=0;amostra.forEach(function(r){var v=String(r[c]==null?'':r[c]).trim();if(!v)return;tot++;if(re.test(v))ok++});return tot?ok/tot:0};
+      if(taxa(fc,/^[\d.\/-]+$/)>=0.6)[fc+1,fc-1].some(function(c){if(c<0||usadosF[c]||taxa(c,/[A-Za-zÀ-ú]{2}/)<0.6)return false;melhor.map.fornecedorNome=c;return true});
+    }
     if(melhor.map.doc==null&&melhor.map.fornecedor==null)return null;
     return melhor;
   }
@@ -10545,7 +10552,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
 
   /* ══ sincronização automática com a planilha do SharePoint (lida pelo serviço Python na pasta sincronizada do OneDrive) ══ */
   var CAMPOS_PL=['doc','fornecedor','fornecedorNome','categoria','cnpj','filial','responsavel','motivo','anexData','anexHora','iniData','iniHora','fimData','fimHora','status','prazo','obs'];
-  var PL={estado:'off',msg:'',verificando:false},PL_VER=7;
+  var PL={estado:'off',msg:'',verificando:false},PL_VER=8;
   function chavePl(p){return norm(p.doc)+'|'+norm(p.fornecedor)+'|'+(p.anexData||'')}
   function fotoPl(p){var o={};CAMPOS_PL.forEach(function(c){o[c]=p[c]==null?'':String(p[c])});return o}
   /* na sincronização a planilha é a fonte da verdade: CNPJ digitado errado não impede a linha de entrar (fica como está na planilha) */
