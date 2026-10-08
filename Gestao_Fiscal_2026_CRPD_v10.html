@@ -9,7 +9,11 @@ window.__gfUser = {nome:"Usuário",id:"local",status:"aprovado"};
    Até o navegador chegar nele, a página aparecia com o layout antigo. A página fica oculta (com uma tela
    de carregamento no visual novo) até todo o HTML e os estilos estarem prontos. */
 (function(){var h=document.documentElement;h.className+=' gf-booting';
-  function pronto(){if(h.className.indexOf('gf-booting')<0)return;h.className=h.className.replace(/\s*gf-booting/g,'');
+  var t0=Date.now();
+  /* só mostra a página quando o último estilo (layout-painel) já foi lido; o limite de 8 s mostrava o layout antigo em conexões lentas */
+  function pronto(){if(h.className.indexOf('gf-booting')<0)return;
+    if(!document.getElementById('layout-painel')&&Date.now()-t0<60000){setTimeout(pronto,150);return}
+    h.className=h.className.replace(/\s*gf-booting/g,'');
     var g=document.getElementById('gf-gate'),s=document.getElementById('gf-senha');if(g&&s&&g.style.display!=='none')try{s.focus();}catch(_e){}}
   document.addEventListener('DOMContentLoaded',pronto);window.addEventListener('load',pronto);setTimeout(pronto,8000);})();</script>
 <meta charset="UTF-8">
