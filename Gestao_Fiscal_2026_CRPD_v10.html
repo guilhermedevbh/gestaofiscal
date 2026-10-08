@@ -10005,7 +10005,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   var KEY='gf_correcoes_v1', CFG='gf_correcoes_cfg', UKEY='gf_cc_usuario';
   var STATUS=['Pendente','Em Correção','Finalizado','Cancelado'];
   var PERFIS={Administrador:'Edita tudo, inclusive registros finalizados; gerencia usuários e exclusões',Corretor:'Cria e edita registros não finalizados',Consulta:'Somente visualização'};
-  var COLS=['ID','NF / Documento','Fornecedor','CNPJ','Filial','Responsável','Motivo da Correção','Data Anexação','Hora Anexação','Data Início','Hora Início','Data Finalização','Hora Finalização','Status','Dias para Correção','Horas para Correção','Prazo','Dentro do Prazo?','Observação','Última Alteração','Usuário da Alteração'];
+  var COLS=['ID','NF / Documento','Fornecedor','Nome do Fornecedor','Categoria','CNPJ','Filial','Responsável','Motivo da Correção','Data Anexação','Hora Anexação','Data Início','Hora Início','Data Finalização','Hora Finalização','Status','Dias para Correção','Horas para Correção','Prazo','Dentro do Prazo?','Observação','Última Alteração','Usuário da Alteração'];
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function norm(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim()}
@@ -10094,7 +10094,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   function durTxt(ms){if(ms==null)return '—';var h=Math.floor(ms/36e5),m=Math.floor((ms%36e5)/6e4);return h>=24?plural(Math.floor(h/24),'dia','dias')+' e '+plural(h%24,'hora','horas'):h+' h '+pad(m)+' min'}
 
   /* ── histórico e alterações ── */
-  var LABEL={doc:'NF / Documento',fornecedor:'Fornecedor',cnpj:'CNPJ',filial:'Filial',responsavel:'Responsável',motivo:'Motivo da Correção',anexData:'Data Anexação',anexHora:'Hora Anexação',iniData:'Data Início',iniHora:'Hora Início',fimData:'Data Finalização',fimHora:'Hora Finalização',status:'Status',prazo:'Prazo (h)',obs:'Observação'};
+  var LABEL={doc:'NF / Documento',fornecedor:'Fornecedor',fornecedorNome:'Nome do Fornecedor',categoria:'Categoria',cnpj:'CNPJ',filial:'Filial',responsavel:'Responsável',motivo:'Motivo da Correção',anexData:'Data Anexação',anexHora:'Hora Anexação',iniData:'Data Início',iniHora:'Hora Início',fimData:'Data Finalização',fimHora:'Hora Finalização',status:'Status',prazo:'Prazo (h)',obs:'Observação'};
   /* autor: opcional — usado quando a alteração vem da planilha do SharePoint (nome de quem salvou a planilha) */
   function aplicar(r,mud,acao,autor){
     var u=usuario(),quem=autor||(u?u.nome:'—'),agora=new Date().toISOString(),hist=r.historico||(r.historico=[]),houve=false;
@@ -10141,7 +10141,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
       if(F.de&&r.anexData<F.de)return false;
       if(F.ate&&r.anexData>F.ate)return false;
       if(F.prazo){var s=situacaoPrazo(r);if(F.prazo==='late'&&s.cls!=='late')return false;if(F.prazo==='warn'&&s.cls!=='warn')return false;if(F.prazo==='ok'&&s.cls!=='ok')return false}
-      if(q&&norm([r.id,r.doc,r.fornecedor,r.cnpj,r.filial,r.responsavel,r.motivo,r.obs].join(' ')).indexOf(q)<0)return false;
+      if(q&&norm([r.id,r.doc,r.fornecedor,r.fornecedorNome,r.categoria,r.cnpj,r.filial,r.responsavel,r.motivo,r.obs].join(' ')).indexOf(q)<0)return false;
       return true;
     }).sort(function(a,b){return String(b.anexData+b.anexHora).localeCompare(String(a.anexData+a.anexHora))});
   }
@@ -10232,7 +10232,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   function rowView(r){
     var sp=situacaoPrazo(r),ed=podeEditar(r),ex=execucao(r);
     return '<tr data-id="'+esc(r.id)+'" class="'+(sp.cls==='late'?'is-late':'')+'">'+
-      '<td class="stk s0" style="box-shadow:inset 4px 0 0 '+corDe(r.responsavel)+'"><b>'+esc(r.id)+'</b></td><td class="stk s1">'+esc(r.doc)+'</td>'+cell(r.fornecedor)+cell(r.cnpj,'mono')+cell(r.filial)+'<td>'+respChip(r.responsavel)+'</td>'+cell(r.motivo,'wrap')+
+      '<td class="stk s0" style="box-shadow:inset 4px 0 0 '+corDe(r.responsavel)+'"><b>'+esc(r.id)+'</b></td><td class="stk s1">'+esc(r.doc)+'</td>'+cell(r.fornecedor)+cell(r.fornecedorNome,'wrap')+cell(r.categoria)+cell(r.cnpj,'mono')+cell(r.filial)+'<td>'+respChip(r.responsavel)+'</td>'+cell(r.motivo,'wrap')+
       '<td>'+(r.anexData?esc(dBR(r.anexData)):'<span class="cc-mute">—</span>')+(r.anexOrigem==='mes'?'<small>mês da planilha</small>':r.anexOrigem==='salvamento'?'<small class="cc-orig" title="A planilha não tem coluna de data: foi usado o momento em que a planilha foi salva no SharePoint">≈ salvamento da planilha</small>':r.anexOrigem==='planilha'?'<small>data da planilha</small>':'')+'</td>'+cell(r.anexHora)+cell(dBR(r.iniData))+cell(r.iniHora)+cell(dBR(r.fimData))+cell(r.fimHora)+
       '<td>'+statusPill(r.status)+(r.status==='Finalizado'&&r.finalizadoPor?'<small>por '+esc(r.finalizadoPor)+(r.finalizadoEm?' · '+esc(dtBR(r.finalizadoEm)):'')+'</small>':'')+(r.reaberturas?'<small class="cc-reab" title="Finalização desfeita '+r.reaberturas+' vez(es) — veja o histórico">↶ reaberta '+r.reaberturas+'x</small>':'')+'</td><td class="cc-live"><b>'+esc(diasTxt(r))+'</b>'+(diasDet(r)?'<small>'+esc(diasDet(r))+'</small>':'')+'</td><td class="cc-live">'+esc(horasTxt(r))+(ex!=null?'<small>execução: '+esc(durTxt(ex))+'</small>':'')+'</td>'+
       '<td>'+esc(prazoH(r))+' h</td><td><span class="cc-pz cc-pz-'+sp.cls+'">'+(sp.cls==='ok'?'🟢 ':sp.cls==='warn'?'🟡 ':sp.cls==='late'?'🔴 ':'')+esc(sp.txt)+'</span></td>'+
@@ -10248,7 +10248,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   function inp(k,v,type,extra){return '<input class="cc-in" data-k="'+k+'" type="'+(type||'text')+'" value="'+esc(v||'')+'"'+(extra||'')+'>'}
   function rowEdit(r){
     return '<tr data-id="'+esc(r.id)+'" class="is-editing">'+
-      '<td class="stk s0"><b>'+esc(r.id)+'</b></td><td class="stk s1">'+inp('doc',r.doc)+'</td><td>'+inp('fornecedor',r.fornecedor)+'</td><td>'+inp('cnpj',r.cnpj,'text',' maxlength="18" data-mask="cnpj"')+'</td><td>'+inp('filial',r.filial)+'</td>'+
+      '<td class="stk s0"><b>'+esc(r.id)+'</b></td><td class="stk s1">'+inp('doc',r.doc)+'</td><td>'+inp('fornecedor',r.fornecedor)+'</td><td>'+inp('fornecedorNome',r.fornecedorNome)+'</td><td>'+inp('categoria',r.categoria)+'</td><td>'+inp('cnpj',r.cnpj,'text',' maxlength="18" data-mask="cnpj"')+'</td><td>'+inp('filial',r.filial)+'</td>'+
       '<td>'+selResp('class="cc-in" data-k="responsavel"',r.responsavel||'')+'</td>'+
       '<td><textarea class="cc-in" data-k="motivo" rows="2">'+esc(r.motivo||'')+'</textarea></td>'+
       '<td>'+inp('anexData',r.anexData,'date')+'</td><td>'+inp('anexHora',r.anexHora,'time')+'</td><td>'+inp('iniData',r.iniData,'date')+'</td><td>'+inp('iniHora',r.iniHora,'time')+'</td><td>'+inp('fimData',r.fimData,'date')+'</td><td>'+inp('fimHora',r.fimHora,'time')+'</td>'+
@@ -10365,7 +10365,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
     var u=usuario();if(!u||u.perfil==='Consulta')return telaUsuario();
     var h=hoje();
     modal('<header><h2>Nova correção</h2><button class="cc-x" data-cc="fechar">×</button></header><form class="cc-form" id="ccNovoForm">'+
-      '<label>NF / Documento *<input data-n="doc" required maxlength="60"></label><label>Fornecedor<input data-n="fornecedor" maxlength="120"></label>'+
+      '<label>NF / Documento *<input data-n="doc" required maxlength="60"></label><label>Fornecedor<input data-n="fornecedor" maxlength="120"></label><label>Nome do Fornecedor<input data-n="fornecedorNome" maxlength="160"></label><label>Categoria<input data-n="categoria" maxlength="80"></label>'+
       '<label>CNPJ (numérico ou alfanumérico)<input data-n="cnpj" maxlength="18" data-mask="cnpj" placeholder="00.000.000/0000-00"></label><label>Filial<input data-n="filial" list="ccFilList" maxlength="60"><datalist id="ccFilList">'+unicos('filial').map(function(f){return '<option value="'+esc(f)+'">'}).join('')+'</datalist></label>'+
       '<label>Responsável'+selResp('data-n="responsavel"','')+'</label><label>Prazo (horas)<input data-n="prazo" type="number" min="1" step="1" value="'+esc(cfg.prazoPadrao)+'"></label>'+
       '<label>Data anexação *<input data-n="anexData" type="date" required value="'+h.d+'"></label><label>Hora anexação<input data-n="anexHora" type="time" value="'+h.t+'"></label>'+
@@ -10439,7 +10439,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   }
 
   /* ── importação da planilha (.xlsx) ── */
-  var SIN={id:['id','codigo','cod'],doc:['nf / documento','nf','nota','nota fiscal','documento','numero nf','n nf','no nf','num nf','nf documento','numero'],fornecedor:['fornecedor','razao social','emitente','nome fornecedor','nome'],cnpj:['cnpj','cnpj fornecedor','cnpj/cpf','cpf/cnpj'],filial:['filial','unidade','loja','empresa'],responsavel:['responsavel','responsavel pela correcao','responsavel correcao','responsaveis','resp','usuario','usuario responsavel','analista','analista responsavel','corretor','corretor responsavel','colaborador','atribuido a','atribuido para','encaminhado para','quem corrige','quem vai corrigir','quem corrigiu','executor','encarregado'],alteradoPor:['alterado por','modificado por','atualizado por','ultima alteracao por','editado por','lancado por','incluido por','criado por','solicitante','solicitado por'],motivo:['motivo da correcao','motivo','problema','ocorrencia','descricao','erro'],
+  var SIN={id:['id','codigo','cod'],doc:['nf / documento','nf','nota','nota fiscal','documento','numero nf','n nf','no nf','num nf','nf documento','numero'],fornecedor:['fornecedor','cod fornecedor','codigo fornecedor','fornecedor cod','emitente'],fornecedorNome:['nome fornecedor','nome do fornecedor','razao social','nome fantasia','descricao fornecedor','nome'],categoria:['categoria','categoria fornecedor','categoria da nota','classificacao','tipo de despesa'],cnpj:['cnpj','cnpj fornecedor','cnpj/cpf','cpf/cnpj'],filial:['filial','unidade','loja','empresa'],responsavel:['responsavel','responsavel pela correcao','responsavel correcao','responsaveis','resp','usuario','usuario responsavel','analista','analista responsavel','corretor','corretor responsavel','colaborador','atribuido a','atribuido para','encaminhado para','quem corrige','quem vai corrigir','quem corrigiu','executor','encarregado'],alteradoPor:['alterado por','modificado por','atualizado por','ultima alteracao por','editado por','lancado por','incluido por','criado por','solicitante','solicitado por'],motivo:['motivo da correcao','motivo','problema','ocorrencia','descricao','erro'],
     anexData:['data anexacao','data de anexacao','data','data envio','data encaminhamento','anexado em','data entrada','data solicitacao'],anexHora:['hora anexacao','hora de anexacao','hora','hora envio'],iniData:['data inicio','data de inicio','inicio'],iniHora:['hora inicio','hora de inicio'],fimData:['data finalizacao','data de finalizacao','data fim','data conclusao','finalizado em','data correcao'],fimHora:['hora finalizacao','hora de finalizacao','hora fim','hora conclusao'],
     mesRef:['mes','mes referencia','mes de referencia','mes ref','mes/ano','mes ano','competencia','periodo','mes do lancamento','mes lancamento'],
     status:['status','situacao'],prazo:['prazo','prazo (h)','prazo horas'],obs:['observacao','observacoes','obs']};
@@ -10450,7 +10450,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
     Object.keys(PARCIAL).forEach(function(k){if(m[k]!=null)return;var idx=header.findIndex(function(h,j){var n=norm(h).replace(/[º°.:]/g,' ');return !usados[j]&&n&&!(k==='anexData'&&/inicio|final|fim|conclus|correc|emiss|venc|alterad|modificad|atualizad/.test(n))&&PARCIAL[k].some(function(t){return (n+' ').indexOf(t)>=0})});if(idx>=0){m[k]=idx;usados[idx]=1}});
     return m;
   }
-  var PARCIAL={mesRef:['mes ','competenc'],anexData:['lancamento','lancad','lancto','anexa','anexo','envio','enviad','entrada','recebid','recebiment','solicitac','abertura','registro','cadastro','inclusao','dt ','data'],responsavel:['respons','corretor','analista','colaborador','atribuid'],alteradoPor:['alterado por','modificado por','atualizado por','editado por','lancado por','incluido por','criado por'],motivo:['motivo','correcao necessaria','o que corrigir','divergencia'],obs:['observ']};
+  var PARCIAL={fornecedorNome:['razao social','nome fornec','nome do fornec'],categoria:['categor'],mesRef:['mes ','competenc'],anexData:['lancamento','lancad','lancto','anexa','anexo','envio','enviad','entrada','recebid','recebiment','solicitac','abertura','registro','cadastro','inclusao','dt ','data'],responsavel:['respons','corretor','analista','colaborador','atribuid'],alteradoPor:['alterado por','modificado por','atualizado por','editado por','lancado por','incluido por','criado por'],motivo:['motivo','correcao necessaria','o que corrigir','divergencia'],obs:['observ']};
   function excelData(v){
     if(v==null||v==='')return {d:'',t:''};
     if(v instanceof Date&&!isNaN(v)){var ano=v.getFullYear();if(ano<1901)return {d:'',t:pad(v.getHours())+':'+pad(v.getMinutes())};return {d:ano+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate()),t:(v.getHours()||v.getMinutes())?pad(v.getHours())+':'+pad(v.getMinutes()):''}}
@@ -10527,7 +10527,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   function linhaReg(row,mp){
     function v(k){return mp[k]==null||row[mp[k]]==null?'':row[mp[k]]}
     var anex=excelData(v('anexData')),anexH=excelData(v('anexHora')),ini=excelData(v('iniData')),iniH=excelData(v('iniHora')),fim=excelData(v('fimData')),fimH=excelData(v('fimHora'));
-    var r={doc:String(v('doc')).trim(),fornecedor:String(v('fornecedor')).trim(),cnpj:String(v('cnpj')).trim(),filial:String(v('filial')).trim(),responsavel:nomeEquipe(String(v('responsavel')).trim()),motivo:String(v('motivo')).trim(),
+    var r={doc:String(v('doc')).trim(),fornecedor:String(v('fornecedor')).trim(),fornecedorNome:String(v('fornecedorNome')).trim(),categoria:String(v('categoria')).trim(),cnpj:String(v('cnpj')).trim(),filial:String(v('filial')).trim(),responsavel:nomeEquipe(String(v('responsavel')).trim()),motivo:String(v('motivo')).trim(),
       anexData:anex.d,anexHora:anexH.t||anex.t||'',iniData:ini.d,iniHora:iniH.t||ini.t||'',fimData:fim.d,fimHora:fimH.t||fim.t||'',prazo:Number(v('prazo'))>0?String(Number(v('prazo'))):'',obs:String(v('obs')).trim()};
     if(r.cnpj){var c=cleanCNPJ(r.cnpj);if(c.length===14)r.cnpj=fmtCNPJAlfa(c)}
     var st=statusDe(v('status'));r.status=st==='Cancelado'?'Cancelado':st||statusAuto(r);
@@ -10540,8 +10540,8 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   function nomeEquipe(n){if(!n)return n;var a=norm(n),l=nomesEquipe();for(var i=0;i<l.length;i++){var b=norm(l[i]);if(a===b||a.indexOf(b+' ')===0||b.indexOf(a+' ')===0||a.split(' ')[0]===b&&b.indexOf(' ')<0)return l[i]}return n}
 
   /* ══ sincronização automática com a planilha do SharePoint (lida pelo serviço Python na pasta sincronizada do OneDrive) ══ */
-  var CAMPOS_PL=['doc','fornecedor','cnpj','filial','responsavel','motivo','anexData','anexHora','iniData','iniHora','fimData','fimHora','status','prazo','obs'];
-  var PL={estado:'off',msg:'',verificando:false},PL_VER=6;
+  var CAMPOS_PL=['doc','fornecedor','fornecedorNome','categoria','cnpj','filial','responsavel','motivo','anexData','anexHora','iniData','iniHora','fimData','fimHora','status','prazo','obs'];
+  var PL={estado:'off',msg:'',verificando:false},PL_VER=7;
   function chavePl(p){return norm(p.doc)+'|'+norm(p.fornecedor)+'|'+(p.anexData||'')}
   function fotoPl(p){var o={};CAMPOS_PL.forEach(function(c){o[c]=p[c]==null?'':String(p[c])});return o}
   /* na sincronização a planilha é a fonte da verdade: CNPJ digitado errado não impede a linha de entrar (fica como está na planilha) */
@@ -10698,7 +10698,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
       '<footer><button class="btn btn-ghost" data-cc="planLocalizar"'+(on?'':' disabled')+'>🔎 Localizar automaticamente</button><button class="btn btn-ghost" data-cc="fechar">Fechar</button><button class="btn btn-primary" data-cc="planSalvar"'+(on?'':' disabled')+'>Salvar e sincronizar</button></footer>');
   }
   /* colunas da planilha × campos do controle (o Administrador corrige se a detecção automática errar) */
-  var CAMPOS_MAPA=[['responsavel','Responsável (quem vai corrigir)'],['alteradoPor','Alterado por (quem lançou/alterou na planilha)'],['motivo','Correção necessária / motivo'],['doc','NF / Documento'],['fornecedor','Fornecedor'],['cnpj','CNPJ'],['filial','Filial'],['mesRef','Mês / competência (define o mês da tarefa, se não houver uma aba por mês)'],['anexData','Data de lançamento'],['anexHora','Hora de lançamento'],['iniData','Data de início'],['fimData','Data de finalização'],['status','Status'],['obs','Observação']];
+  var CAMPOS_MAPA=[['responsavel','Responsável (quem vai corrigir)'],['alteradoPor','Alterado por (quem lançou/alterou na planilha)'],['motivo','Correção necessária / motivo'],['doc','NF / Documento'],['fornecedor','Fornecedor (código)'],['fornecedorNome','Nome do fornecedor'],['categoria','Categoria'],['cnpj','CNPJ'],['filial','Filial'],['mesRef','Mês / competência (define o mês da tarefa, se não houver uma aba por mês)'],['anexData','Data de lançamento'],['anexHora','Hora de lançamento'],['iniData','Data de início'],['fimData','Data de finalização'],['status','Status'],['obs','Observação']];
   function mapaHtml(){
     var p=cfg.planilha;if(!p||!p.cabecalho)return '<p class="full cc-note">Depois da primeira leitura aparecem aqui as colunas da planilha para você conferir qual coluna é o responsável, o motivo etc.</p>';
     var ov=cfg.planilhaMapa||{},usados={};Object.keys(p.mapa||{}).forEach(function(k){usados[k]=p.mapa[k]});
@@ -10814,7 +10814,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
   }
 
   /* ── exportação ── */
-  function linhaExport(r){var sp=situacaoPrazo(r),t=tempo(r);return [r.id,r.doc,r.fornecedor,r.cnpj,r.filial,r.responsavel,r.motivo,dBR(r.anexData),r.anexHora,dBR(r.iniData),r.iniHora,dBR(r.fimData),r.fimHora,r.status,t?t.dias:'',t?t.horas:'',prazoH(r),sp.sim===null?'':sp.sim?'Sim':'Não',r.obs,dtBR(r.updatedAt),r.updatedBy]}
+  function linhaExport(r){var sp=situacaoPrazo(r),t=tempo(r);return [r.id,r.doc,r.fornecedor,r.fornecedorNome||'',r.categoria||'',r.cnpj,r.filial,r.responsavel,r.motivo,dBR(r.anexData),r.anexHora,dBR(r.iniData),r.iniHora,dBR(r.fimData),r.fimHora,r.status,t?t.dias:'',t?t.horas:'',prazoH(r),sp.sim===null?'':sp.sim?'Sim':'Não',r.obs,dtBR(r.updatedAt),r.updatedBy]}
   function exportar(){
     if(!window.XLSX){toast('Biblioteca de planilhas não carregada.');return}
     var l=lista(),wb=XLSX.utils.book_new(),k=indicadores();
