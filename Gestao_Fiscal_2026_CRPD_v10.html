@@ -10168,7 +10168,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
     var u=usuario();
     root.innerHTML=
       '<div class="cc-head"><div><h1>Controle de Correções</h1><p>Acompanhamento das notas e tarefas encaminhadas para correção: responsáveis, datas, prazo, tempo em aberto e histórico de alterações.</p></div>'+
-        '<div class="cc-head-act"><label class="btn btn-ghost cc-file">⇪ Importar planilha (.xlsx)<input type="file" id="ccImport" accept=".xlsx,.xls,.csv" hidden></label><button class="btn btn-ghost" data-cc="export">↧ Exportar Excel</button><button class="btn btn-ghost" data-cc="backup">↧ Backup JSON</button><button class="btn btn-primary" data-cc="novo"'+(u&&u.perfil!=='Consulta'?'':' disabled title="Selecione um usuário com permissão de edição"')+'>＋ Nova correção</button></div></div>'+
+        '<div class="cc-head-act">'+(isAdmin()?'<label class="btn btn-ghost cc-file">⇪ Importar planilha (.xlsx)<input type="file" id="ccImport" accept=".xlsx,.xls,.csv" hidden></label>':'')+'<button class="btn btn-ghost" data-cc="export">↧ Exportar Excel</button><button class="btn btn-ghost" data-cc="backup">↧ Backup JSON</button><button class="btn btn-primary" data-cc="novo"'+(u&&u.perfil!=='Consulta'?'':' disabled title="Selecione um usuário com permissão de edição"')+'>＋ Nova correção</button></div></div>'+
       '<div class="cc-user"'+(u?' style="border-left-color:'+corDe(u.nome)+'"':'')+'>'+(u?'<span class="cc-avatar" style="background:'+corDe(u.nome)+'">'+esc(iniciais(u.nome))+'</span><div><b>'+esc(u.nome)+'</b><small>'+esc(u.perfil)+' — '+esc(PERFIS[u.perfil]||'')+'</small></div><button class="btn btn-ghost btn-sm" data-cc="trocar">Trocar usuário</button>':'<div><b>Identifique-se para registrar as alterações</b><small>Cada edição grava automaticamente o usuário, a data e a hora.</small></div><button class="btn btn-primary btn-sm" data-cc="trocar">Selecionar usuário</button>')+
         (isAdmin()?'<button class="btn btn-ghost btn-sm" data-cc="usuarios">⚙ Usuários e prazo padrão</button>':'')+'</div>'+
       '<section class="cc-plan" id="ccPlan"></section>'+
@@ -10680,8 +10680,8 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
       (p&&p.lidoEm?' · última importação: '+esc(dtBR(p.lidoEm))+(p.modificado_por?' por <b>'+esc(p.modificado_por)+'</b>':'')+' ('+p.add+' nova(s), '+p.upd+' atualizada(s)'+(p.inval?', '+p.inval+' com datas inválidas ignorada(s)':'')+(p.rem?', '+p.rem+' removida(s)':'')+')':'')+
       (p&&p.abas&&p.abas.length?'<span class="cc-plan-abas">'+p.linhas+' linha(s) em '+p.abas.length+' aba(s): '+p.abas.map(function(a){return '<em>'+esc(a.nome)+(a.mes?' → '+esc(MESES[+a.mes.slice(5)-1].slice(0,3)+'/'+a.mes.slice(0,4)):'')+' ('+a.linhas+')</em>'}).join(' ')+'</span>':'')+
       (p&&p.mapa&&p.mapa.responsavel==null?'<span class="cc-plan-warn">⚠ Coluna do <b>responsável</b> não encontrada na planilha'+(isAdmin()?' — clique em ⚙ Configurar e escolha a coluna.':' — avise o Administrador.')+'</span>':p&&p.mapa&&p.cabecalho?'<span class="cc-plan-ok">Responsável: coluna “'+esc(p.cabecalho[p.mapa.responsavel])+'”'+(p.mapa.alteradoPor!=null?' · alterado por: coluna “'+esc(p.cabecalho[p.mapa.alteradoPor])+'”':'')+'</span>':'')+'</small></div>'+
-      '<button class="btn btn-primary btn-sm" data-cc="planEnviar">⇪ Enviar planilha</button>'+
-      (manual?'':'<button class="btn btn-ghost btn-sm" data-cc="planSync"'+(PL.verificando?' disabled':'')+'>⟳ Sincronizar agora</button>')+
+      (isAdmin()?'<button class="btn btn-primary btn-sm" data-cc="planEnviar">⇪ Enviar planilha</button>':'<span class="cc-plan-warn">🔒 Somente o Administrador pode enviar a planilha.</span>')+
+      (manual||!isAdmin()?'':'<button class="btn btn-ghost btn-sm" data-cc="planSync"'+(PL.verificando?' disabled':'')+'>⟳ Sincronizar agora</button>')+
       (isAdmin()?'<button class="btn btn-ghost btn-sm" data-cc="planCfg">⚙ Colunas</button>':'');
   }
   async function telaPlanilha(){
@@ -10870,8 +10870,8 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
     else if(acao==='iniciar'||acao==='finalizar')acaoRapida(id,acao);
     else if(acao==='historico')historico(id);
     else if(acao==='desfazer')telaDesfazer(id);
-    else if(acao==='planSync')verificarPlanilha(true);
-    else if(acao==='planEnviar'){var fi=document.getElementById('ccImport');if(fi)fi.click()}
+    else if(acao==='planSync'){if(isAdmin())verificarPlanilha(true)}
+    else if(acao==='planEnviar'){if(!isAdmin()){toast('🔒 Somente o Administrador pode enviar a planilha.');return}var fi=document.getElementById('ccImport');if(fi)fi.click()}
     else if(acao==='planCfg')telaPlanilha();
     else if(acao==='planLocalizar')planLocalizar();
     else if(acao==='planUsar'){document.getElementById('ccPlanCam').value=b.getAttribute('data-cam')}
@@ -10892,7 +10892,7 @@ window.GF_CEST_RAW=(window.GF_CEST_RAW||'')+`
     if(t.id==='ccEspelhar'&&importacao){importacao.espelhar=t.checked;telaImportacao();return}
     if(t.id==='ccPMes'){P.mes=t.value;salvarPeriodo();atualizarFiltros();return}
     if(t.id==='ccPAno'){P.ano=t.value;if(!P.ano)P.mes='';else if(!P.mes&&t.value===String(new Date().getFullYear()))P.mes=pad(new Date().getMonth()+1);salvarPeriodo();atualizarFiltros();return}    if(map[t.id]){F[map[t.id]]=t.value;atualizar();return}
-    if(t.id==='ccImport'&&t.files&&t.files[0]){var u=usuario();if(!u||u.perfil==='Consulta'){toast('Selecione um usuário com permissão de edição para importar.');t.value='';telaUsuario();return}lerArquivo(t.files[0]);t.value=''}
+    if(t.id==='ccImport'&&t.files&&t.files[0]){if(!isAdmin()){toast('🔒 Somente o Administrador pode importar a planilha.');t.value='';telaUsuario();return}lerArquivo(t.files[0]);t.value=''}
   });
   root.addEventListener('keydown',function(e){
     if((e.key==='Enter'||e.key===' ')&&e.target.getAttribute&&e.target.getAttribute('data-cc-kpi')!=null){e.preventDefault();irKpi(e.target.getAttribute('data-cc-kpi'));return}
