@@ -1,0 +1,15 @@
+# Segredos e dados sensíveis — nunca versionar nem publicar
+.env
+.env.*
+!.env.example
+**/data/
+*.db
+*.db-*
+*.pfx
+*.p12
+*.pem
+*.key
+*.tmp
+Credencial*.txt
+ADM PAINEL/Credencial*
+node_modules/

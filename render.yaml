@@ -1,0 +1,21 @@
+# Publicação no Render (https://render.com) — "New > Blueprint" apontando para este repositório.
+# Plano Starter (sempre ligado) + disco de 1 GB para o banco de dados: ~US$ 7,25/mês.
+services:
+  - type: web
+    name: gestao-fiscal
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: banco-de-dados
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      # HASH SHA-256 do token do primeiro administrador (o token em si nunca fica no servidor)
+      - key: XML_AUDITOR_ADMIN_TOKEN_HASH
+        sync: false
+      - key: XML_AUDITOR_ADMIN_NOME
+        value: Guilherme Admin

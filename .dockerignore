@@ -1,0 +1,8 @@
+# Somente o necessário vai para o servidor (nada de credenciais, bancos locais ou versões antigas)
+*
+!Dockerfile
+!Gestao_Fiscal_2026_CRPD_v10.html
+!auditor-xml-python/
+auditor-xml-python/data/
+auditor-xml-python/tests/
+auditor-xml-python/**/__pycache__/

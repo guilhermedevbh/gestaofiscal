@@ -1,0 +1,3 @@
+# O serviço funciona somente com a biblioteca padrão do Python 3.9+.
+# Opcional (camada extra contra XML malicioso — recomendado em produção):
+defusedxml>=0.7.1
